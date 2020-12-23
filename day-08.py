@@ -3,6 +3,8 @@
 import fileinput
 import re
 from dataclasses import dataclass
+from dataclasses import field
+from typing import Set
 
 op = re.compile("(\w+) ([-+]\d+)")
 
@@ -17,8 +19,13 @@ class Op:
 class VM:
     pc: int = 0
     acc: int = 0
+    seen: Set[int] = field(default_factory=set)
+
+    def looped(self):
+        return self.pc in self.seen
 
     def execute(self, op):
+        self.seen.add(self.pc)
         if op.code == "acc":
             self.acc += op.num
             self.pc += 1
@@ -41,9 +48,7 @@ def parse_op(line):
 
 def run(ops):
     vm = VM()
-    seen = set()
-    while vm.pc not in seen:
-        seen.add(vm.pc)
+    while not vm.looped():
         vm.execute(ops[vm.pc])
     return vm.acc
 
