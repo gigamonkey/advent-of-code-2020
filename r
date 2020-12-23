@@ -5,7 +5,7 @@ day="$1"
 script=$(printf "day-%02d.py" "$day")
 
 case "$2" in
-    "--sample")
+    "-s")
         dir="samples"
         ;;
     *)
