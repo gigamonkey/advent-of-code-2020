@@ -31,7 +31,7 @@ required = {k for k, v in fields.items() if v}
 four_digits_pat = re.compile(r"\d{4}$")
 height = re.compile("(\d+)(cm|in)$")
 hair_color = re.compile("#[0-9a-f]{6}$")
-passport_id = re.compile("[0-9]{9}")
+passport_id = re.compile("[0-9]{9}$")
 
 
 def four_digits(min, max):
