@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import fileinput
 from dataclasses import dataclass
 
@@ -20,8 +21,16 @@ def boarding_pass(line):
     return BoardingPass(row, col, row * 8 + col)
 
 
+def missing(passes):
+    seats = {p.seat for p in passes}
+    m = set(range(min(seats), max(seats) + 1)) - seats
+    assert len(m) == 1
+    return m.pop()
+
+
 if __name__ == "__main__":
 
     passes = parse(fileinput.input())
 
-    print(max(p.seat for p in passes))
+    # print(max(p.seat for p in passes))
+    print(missing(passes))
