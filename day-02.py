@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 
 import fileinput
-from dataclasses import dataclass
-
 import re
+from dataclasses import dataclass
 
 pat = re.compile(r"^(\d+)-(\d+) (\w): (\w+)$")
 
+
 def xor(a, b):
     return (not a and b) or (a and not b)
+
 
 @dataclass
 class Line:
@@ -21,7 +22,10 @@ class Line:
         return self.min <= sum(self.char == c for c in self.password) <= self.max
 
     def ok2(self):
-        return xor(self.char == self.password[self.min - 1], self.char == self.password[self.max - 1])
+        return xor(
+            self.char == self.password[self.min - 1],
+            self.char == self.password[self.max - 1],
+        )
 
 
 def parse_file(lines):
@@ -34,5 +38,5 @@ def parse_file(lines):
 
 if __name__ == "__main__":
 
-    #print(sum(line.ok() for line in parse_file(fileinput.input())))
+    # print(sum(line.ok() for line in parse_file(fileinput.input())))
     print(sum(line.ok2() for line in parse_file(fileinput.input())))

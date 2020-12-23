@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import fileinput
-from itertools import combinations
 
 
 def part_1(numbers):
