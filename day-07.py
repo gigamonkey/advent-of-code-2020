@@ -2,6 +2,7 @@
 
 import fileinput
 import re
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict
 
@@ -35,9 +36,27 @@ def parse_rule(line):
         raise Exception(f"{line} doesn't match line pattern")
 
 
+def invert(rules):
+    d = defaultdict(set)
+    for r in rules:
+        for c, n in r.inner.items():
+            d[c].add(r.outer)
+    return d
+
+
+def outers(color, inverted, seen=None):
+
+    if seen is None:
+        seen = set()
+
+    for c in inverted[color] - seen:
+        seen = seen | outers(c, inverted, seen | {c})
+
+    return seen
+
+
 if __name__ == "__main__":
 
     rules = parse(fileinput.input())
 
-    for r in rules:
-        print(r)
+    print(len(outers("shiny gold", invert(rules))))
