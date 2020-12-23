@@ -14,6 +14,10 @@ class Line:
     char: str
     password: str
 
+    def ok(self):
+        return self.min <= sum(self.char == c for c in self.password) <= self.max
+
+
 
 def parse_file(lines):
     for line in lines:
@@ -23,5 +27,4 @@ def parse_file(lines):
 
 if __name__ == "__main__":
 
-    for line in parse_file(fileinput.input()):
-        print(line)
+    print(sum(line.ok() for line in parse_file(fileinput.input())))
