@@ -4,6 +4,10 @@ day="$1"
 
 script=$(printf "day-%02d.py" "$day")
 
+if [ ! -x "$script" ]; then
+    chmod +x "$script"
+fi
+
 case "$2" in
     "-s")
         dir="samples"
