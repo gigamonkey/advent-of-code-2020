@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 
 import fileinput
+from functools import reduce
+from operator import mul
+
+
+def parse(input):
+    return [line[:-1] for line in input]
 
 
 def count_trees(grid, right=3, down=1):
@@ -14,6 +20,14 @@ def count_trees(grid, right=3, down=1):
     return count
 
 
+def part2(grid):
+    slopes = [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)]
+    return reduce(mul, [count_trees(grid, *s) for s in slopes])
+
+
 if __name__ == "__main__":
 
-    print(count_trees([line[:-1] for line in fileinput.input()]))
+    grid = parse(fileinput.input())
+    print(count_trees(grid))
+
+    print(part2(grid))
