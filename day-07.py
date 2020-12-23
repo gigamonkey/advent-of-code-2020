@@ -44,6 +44,10 @@ def invert(rules):
     return d
 
 
+def to_dict(rules):
+    return {r.outer: r.inner for r in rules}
+
+
 def outers(color, inverted, seen=None):
 
     if seen is None:
@@ -55,8 +59,14 @@ def outers(color, inverted, seen=None):
     return seen
 
 
+def count_bags(color, tree):
+    return 1 + sum(n * count_bags(c, tree) for c, n in tree[color].items())
+
+
 if __name__ == "__main__":
 
     rules = parse(fileinput.input())
 
-    print(len(outers("shiny gold", invert(rules))))
+    # print(len(outers("shiny gold", invert(rules))))
+
+    print(count_bags("shiny gold", to_dict(rules)) - 1)
