@@ -31,9 +31,15 @@ def part_two(numbers):
     return g(s)
 
 
+def count(g):
+    c = 0
+    for _ in g:
+        c += 1
+    return c
+
+
 if __name__ == "__main__":
 
     numbers = parse(fileinput.input())
 
-    for x in part_two(numbers):
-        print(x)
+    print(count(part_two(numbers)))
