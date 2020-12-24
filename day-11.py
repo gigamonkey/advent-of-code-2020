@@ -9,31 +9,68 @@ import fileinput
 # Otherwise, the seat's state does not change.
 
 
+directions = [(x, y) for x in (-1, 0, 1) for y in (-1, 0, 1) if x != 0 or y != 0]
+
+
 def parse(input):
     return [list(line[:-1]) for line in input]
 
 
-def neighbors(i, j, x_range, y_range):
-    d = (-1, 0, 1)
-    for x in d:
-        for y in d:
-            if x != 0 or y != 0:
-                n_i = i + x
-                n_j = j + y
-                if n_i in x_range and n_j in y_range:
-                    yield (n_i, n_j)
+#
+# Part 1
+#
 
 
-def new_value(grid, current, neighbors):
-    if current == "L" and all(grid[j][i] in {"L", "."} for i, j in neighbors):
+def visible_neighbors(grid, x, y):
+    x_range = range(len(grid[0]))
+    y_range = range(len(grid))
+    return [grid[y][x] for x, y in neighbors(x, y, x_range, y_range)]
+
+
+def neighbors(x, y, x_range, y_range):
+    for d_x, d_y in directions:
+        n_x = x + d_x
+        n_y = y + d_y
+        if n_x in x_range and n_y in y_range:
+            yield (n_x, n_y)
+
+
+#
+# Part 2
+#
+
+
+def visible_in_all_directions(grid, x, y):
+    return [in_direction(grid, x, y, d) for d in directions]
+
+
+def in_direction(grid, x, y, d):
+    x_range = range(len(grid[0]))
+    y_range = range(len(grid))
+    d_x, d_y = d
+    while True:
+        x += d_x
+        y += d_y
+        if x in x_range and y in y_range:
+            value = grid[y][x]
+            if value != ".":
+                return value
+        else:
+            break
+
+    return None
+
+
+def rule(current, visible, too_crowded):
+    if current == "L" and all(v != "#" for v in visible):
         return "#"
-    elif current == "#" and sum(grid[j][i] == "#" for i, j in neighbors) >= 4:
+    elif current == "#" and sum(v == "#" for v in visible) >= too_crowded:
         return "L"
     else:
         return current
 
 
-def next_grid(grid):
+def next_grid(grid, visible_fn, too_crowded):
     x_range = range(len(grid[0]))
     y_range = range(len(grid))
 
@@ -43,11 +80,8 @@ def next_grid(grid):
 
     for j in y_range:
         for i in x_range:
-            n = list(neighbors(i, j, x_range, y_range))
-            current = grid[j][i]
-            new = new_value(grid, current, n)
-            new_grid[j][i] = new
-            changes = changes or (current != new)
+            new_grid[j][i] = rule(grid[j][i], visible_fn(grid, i, j), too_crowded)
+            changes |= grid[j][i] != new_grid[j][i]
 
     return new_grid, changes
 
@@ -56,17 +90,24 @@ def occupied(grid):
     return sum(sum(c == "#" for c in row) for row in grid)
 
 
-def fix_point(grid):
+def fix_point(grid, next_grid):
     changes = True
     while changes:
+        dump(grid)
+        print()
         grid, changes = next_grid(grid)
     return grid
+
+
+def dump(grid):
+    for row in grid:
+        print("".join(row))
 
 
 if __name__ == "__main__":
 
     grid = parse(fileinput.input())
 
-    end = fix_point(grid)
+    end = fix_point(grid, lambda grid: next_grid(grid, visible_in_all_directions, 5))
 
     print(f"{occupied(end)} occpupied seats.")
