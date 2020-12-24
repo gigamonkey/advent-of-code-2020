@@ -93,8 +93,6 @@ def occupied(grid):
 def fix_point(grid, next_grid):
     changes = True
     while changes:
-        dump(grid)
-        print()
         grid, changes = next_grid(grid)
     return grid
 
@@ -102,6 +100,7 @@ def fix_point(grid, next_grid):
 def dump(grid):
     for row in grid:
         print("".join(row))
+    print()
 
 
 if __name__ == "__main__":
