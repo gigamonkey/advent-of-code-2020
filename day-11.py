@@ -12,6 +12,7 @@ import fileinput
 def parse(input):
     return [list(line[:-1]) for line in input]
 
+
 def neighbors(i, j, x_range, y_range):
     d = (-1, 0, 1)
     for x in d:
@@ -22,8 +23,9 @@ def neighbors(i, j, x_range, y_range):
                 if n_i in x_range and n_j in y_range:
                     yield (n_i, n_j)
 
+
 def new_value(grid, current, neighbors):
-    if current == "L" and all(grid[j][i] in {'L', '.'} for i, j in neighbors):
+    if current == "L" and all(grid[j][i] in {"L", "."} for i, j in neighbors):
         return "#"
     elif current == "#" and sum(grid[j][i] == "#" for i, j in neighbors) >= 4:
         return "L"
@@ -49,25 +51,22 @@ def next_grid(grid):
 
     return new_grid, changes
 
+
 def occupied(grid):
     return sum(sum(c == "#" for c in row) for row in grid)
 
+
+def fix_point(grid):
+    changes = True
+    while changes:
+        grid, changes = next_grid(grid)
+    return grid
 
 
 if __name__ == "__main__":
 
     grid = parse(fileinput.input())
 
-    for row in grid :
-        print(''.join(row))
+    end = fix_point(grid)
 
-
-    changes = True
-    while changes:
-        print()
-        grid, changes = next_grid(grid)
-        for row in grid:
-            print(''.join(row))
-
-    print()
-    print(f"{occupied(grid)} occpupied seats.")
+    print(f"{occupied(end)} occpupied seats.")
