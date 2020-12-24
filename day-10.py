@@ -16,8 +16,24 @@ def part_one(numbers):
     return c[1] * c[3]
 
 
+def part_two(numbers):
+    def g(s):
+        if len(s) == 1:
+            yield s
+        else:
+            first, *rest = s
+            for i in range(len(rest)):
+                if rest[i] - first <= 3:
+                    for tail in g(rest[i:]):
+                        yield [first, *tail]
+
+    s = [0] + sorted(numbers) + [max(numbers) + 3]
+    return g(s)
+
+
 if __name__ == "__main__":
 
     numbers = parse(fileinput.input())
 
-    print(part_one(numbers))
+    for x in part_two(numbers):
+        print(x)
