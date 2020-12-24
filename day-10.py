@@ -31,6 +31,22 @@ def part_two(numbers):
     return g(s)
 
 
+def part_two_count_dp(numbers):
+
+    s = [0] + sorted(numbers) + [max(numbers) + 3]
+
+    memo = [0] * len(s)
+
+    memo[-1] = 1
+
+    for i in range(len(s) - 2, -1, -1):
+        for j in range(i + 1, len(s)):
+            if s[j] - s[i] <= 3:
+                memo[i] += memo[j]
+
+    return memo[0]
+
+
 def count(g):
     c = 0
     for _ in g:
@@ -42,4 +58,6 @@ if __name__ == "__main__":
 
     numbers = parse(fileinput.input())
 
-    print(count(part_two(numbers)))
+    # print(count(part_two(numbers)))
+
+    print(part_two_count_dp(numbers))
