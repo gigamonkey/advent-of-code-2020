@@ -29,11 +29,12 @@ def game(start):
         turn += 1
 
 
-def answer(g):
-    return next(islice(g, 2019, 2020))
+def answer(g, turn=2020):
+    return next(islice(g, turn - 1, turn))
 
 
 if __name__ == "__main__":
 
     start = [int(x) for x in sys.argv[1].split(",")]
-    print(answer(game(start)))
+    turn = int(sys.argv[2])
+    print(answer(game(start), turn))
