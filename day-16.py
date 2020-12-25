@@ -3,6 +3,8 @@
 import fileinput
 import re
 from dataclasses import dataclass
+from functools import reduce
+from operator import mul
 from typing import Dict
 from typing import List
 
@@ -110,6 +112,11 @@ def eliminate(possibilities, i, field):
     return all(len(p) == 1 for p in possibilities)
 
 
+def part_2(notes):
+    ticket = dict(zip(deduce_fields(notes), notes.ticket))
+    return reduce(mul, (v for k, v in ticket.items() if k.startswith("departure")))
+
+
 if __name__ == "__main__":
 
     notes = parse(fileinput.input())
@@ -119,4 +126,4 @@ if __name__ == "__main__":
     if part == 1:
         print(ticket_scanning_error_rate(notes.rules, notes.nearby))
     else:
-        print(deduce_fields(notes))
+        print(part_2(notes))
