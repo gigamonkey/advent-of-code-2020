@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from functools import reduce
 import fileinput
 from functools import reduce
 
@@ -54,7 +53,7 @@ def solve2(problem):
 
 
 def simultaneous_congruences(a, n):
-    """"
+    """ "
     Based on Cameron's answer at https://www.khanacademy.org/computing/computer-science/cryptography/modarithmetic/a/congruence-modulo
     """
 
@@ -67,6 +66,7 @@ def simultaneous_congruences(a, n):
         return modular_inverse(Mi(i), n[i])
 
     return sum(a[i] * Mi(i) * Mi_inverse(i) for i in range(len(a))) % M
+
 
 def extended_euclidian(a, b):
     """
@@ -87,7 +87,6 @@ def modular_inverse(a, b):
         return x % b
     else:
         raise Exception(f"Not co-prime {a} and {b}!")
-
 
 
 if __name__ == "__main__":
