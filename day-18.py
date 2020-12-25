@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import fileinput
 from dataclasses import dataclass
 from operator import add
 from operator import mul
@@ -44,7 +45,7 @@ class Binary(Expression):
 
 
 def parse(input):
-    return [parse_expr(line[:-1]) for line in input]
+    return [(line[:-1], parse_expr(line[:-1])[0]) for line in input]
 
 
 def parse_expr(s, pos=0):
@@ -61,7 +62,7 @@ def parse_expr(s, pos=0):
 
         left = Binary(fn, left, right)
         if pos < len(s) and s[pos] == ")":
-            return left, eat_whitespace(pos + 1)
+            return left, eat_whitespace(s, pos + 1)
 
     return left, len(s)
 
@@ -89,61 +90,5 @@ def eat_whitespace(s, pos):
 
 if __name__ == "__main__":
 
-    # 1 + 2 * 3 + 4 * 5 + 6
-
-    print(
-        Binary(
-            add,
-            Binary(
-                mul,
-                Binary(
-                    add,
-                    Binary(mul, Binary(add, Value(1), Value(2)), Value(3)),
-                    Value(4),
-                ),
-                Value(5),
-            ),
-            Value(6),
-        ).eval()
-    )
-
-    v1 = Value(1)
-    b1 = Binary(add, v1)
-    v2 = Value(2)
-    b1.right = v2
-    b2 = Binary(mul, b1)
-    v3 = Value(3)
-    b2.right = v3
-    b3 = Binary(add, b2)
-    v4 = Value(4)
-    b3.right = v4
-    b4 = Binary(mul, b3)
-    v5 = Value(5)
-    b4.right = v5
-    b5 = Binary(add, b4)
-    v6 = Value(6)
-    b5.right = v6
-
-    print(b5.eval())
-
-    left = Value(1)
-    b = Binary(add, left)
-    right = Value(2)
-    b1.right = right
-    b2 = Binary(mul, b1)
-    v3 = Value(3)
-    b2.right = v3
-    b3 = Binary(add, b2)
-    v4 = Value(4)
-    b3.right = v4
-    b4 = Binary(mul, b3)
-    v5 = Value(5)
-    b4.right = v5
-    b5 = Binary(add, b4)
-    v6 = Value(6)
-    b5.right = v6
-
-    print(b5.eval())
-
-    tree, pos = parse_expr("1 + 2 * 3 + 4 * 5 + 6")
-    print(tree.eval())
+    for text, e in parse(fileinput.input()):
+        print(f"{text} => {e.eval()}")
