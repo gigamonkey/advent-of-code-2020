@@ -90,5 +90,4 @@ def eat_whitespace(s, pos):
 
 if __name__ == "__main__":
 
-    for text, e in parse(fileinput.input()):
-        print(f"{text} => {e.eval()}")
+    print(sum(x[1].eval() for x in parse(fileinput.input())))
