@@ -14,14 +14,18 @@ def flip(square, fn):
         new_square[new_y][new_x] = square[y][x]
     return new_square
 
+
 def flip_horizontal(square):
     return flip(square, lambda n, x, y: (x, (n - y)))
+
 
 def flip_vertical(square):
     return flip(square, lambda n, x, y: ((n - x), y))
 
+
 def flip_diagonal_1(square):
     return flip(square, lambda n, x, y: (y, x))
+
 
 def flip_diagonal_2(square):
     return flip(square, lambda n, x, y: ((n - y), (n - x)))
@@ -54,15 +58,22 @@ if __name__ == "__main__":
 
     square = [["A", "B"], ["D", "C"]]
 
-    results = defaultdict(set)
+    square = [list("ABCD"), list("EFGH"), list("IJKL"), list("MNOP")]
+    # square = [list("ABC"), list("DEF"), list("GHI")]
 
+    for t in [(), (0,), (1,), (2,), (3,), (0, 1), (0, 2), (0, 3)]:
+        for row in transform(square, t):
+            print(" ".join(row))
+        print()
+    exit()
+
+    results = defaultdict(set)
 
     for i, t in enumerate(transforms()):
         x = to_string(transform(square, t))
         results[x].add(t)
         if i == 100000:
             break
-
 
     print(len(results.keys()))
     for r, ts in results.items():
