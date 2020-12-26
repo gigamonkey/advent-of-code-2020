@@ -6,44 +6,25 @@ from itertools import count
 from itertools import product
 
 
-
-
-
-def flip_horizontal(sq):
-    return list(reversed(square))
-
-def flip_vertical(sq):
-    return [list(reversed(row)) for row in sq]
-
-
-def flip_diagonal_1(sq):
-    return [[sq[1][1], sq[0][1]], [sq[1][0], sq[0][0]]]
-
-
-def flip_diagonal_2(sq):
-    return [[sq[0][0], sq[1][0]], [sq[0][1], sq[1][1]]]
-
-
-def transform(square, fn):
+def flip(square, fn):
     size = len(square)
     new_square = [[None] * size for _ in range(size)]
-    for x, y in product(range(n), repeat=2):
+    for x, y in product(range(size), repeat=2):
         new_x, new_y = fn(size - 1, x, y)
         new_square[new_y][new_x] = square[y][x]
     return new_square
 
-def new_flip_horizontal(square):
-    return transform(square, lambda n, x, y: ((n - y), x))
+def flip_horizontal(square):
+    return flip(square, lambda n, x, y: (x, (n - y)))
 
-def new_flip_vertical(square):
-    return transform(square, lambda n, x, y: (y, (n - x)))
+def flip_vertical(square):
+    return flip(square, lambda n, x, y: ((n - x), y))
 
-def new_flip_diagonal_1(square):
-    return transform(square, lambda n, x, y: (y, x))
+def flip_diagonal_1(square):
+    return flip(square, lambda n, x, y: (y, x))
 
-def new_flip_diagonal_2(square):
-    return transform(square, lambda n, x, y: ((n - y), (n - x)))
-
+def flip_diagonal_2(square):
+    return flip(square, lambda n, x, y: ((n - y), (n - x)))
 
 
 def to_string(sq):
@@ -53,15 +34,8 @@ def to_string(sq):
 transformations = [
     flip_horizontal,
     flip_vertical,
-    flip_diagonal_1,
     flip_diagonal_2,
-]
-
-new_transformations = [
-    new_flip_horizontal,
-    new_flip_vertical,
-    new_flip_diagonal_1,
-    new_flip_diagonal_2,
+    flip_diagonal_1,
 ]
 
 
@@ -79,7 +53,6 @@ def transforms():
 if __name__ == "__main__":
 
     square = [["A", "B"], ["D", "C"]]
-
 
     results = defaultdict(set)
 
