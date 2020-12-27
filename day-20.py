@@ -25,14 +25,12 @@ opposite = {
 }
 
 
-# FIXME: generalize this to rectangles. Needs to make a rectangle with
-# flipped dimensions and second diagonal flipper needs to be passed
-# new (height - 1) and (width - 1) rather than (size - 1) the square.
-def flipper(fn):
+def flipper(fn, diag):
     def flip(rect):
         height = len(rect)
         width = len(rect[0])
-        new_rect = [[None] * width for _ in range(height)]
+        new_width, new_height = (width, height) if not diag else (height, width)
+        new_rect = [[None] * new_width for _ in range(new_height)]
         for x, y in product(range(width), range(height)):
             new_x, new_y = fn(width - 1, height - 1, x, y)
             new_rect[new_y][new_x] = rect[y][x]
@@ -42,16 +40,16 @@ def flipper(fn):
 
 
 flips = [
-    flipper(fn)
-    for fn in (
+    flipper(fn, diag)
+    for fn, diag in (
         # Vertical
-        lambda w, h, x, y: (x, (h - y)),
+        (lambda w, h, x, y: (x, (h - y)), False),
         # Horizontal
-        lambda w, h, x, y: ((w - x), y),
+        (lambda w, h, x, y: ((w - x), y), False),
         # Diagonal 1
-        lambda w, h, x, y: (y, x),
+        (lambda w, h, x, y: (y, x), True),
         # Diagonal 2
-        lambda w, h, x, y: ((h - y), (w - x)),
+        (lambda w, h, x, y: ((h - y), (w - x)), True),
     )
 ]
 
@@ -180,7 +178,6 @@ def solve(tiles):
 
 
 def combine(image):
-
     def g():
         for row in image:
             tile_height = len(row[0].rows)
@@ -189,9 +186,11 @@ def combine(image):
 
     return tuple(g())
 
+
 def show(bits):
     for line in bits:
-        print("".join(line))
+        print(" ".join(line))
+
 
 if __name__ == "__main__":
 
@@ -204,7 +203,6 @@ if __name__ == "__main__":
         print()
 
     print(len({transform(image, t) for t in transforms}))
-
 
     d = defaultdict(set)
     for tile in tiles:
