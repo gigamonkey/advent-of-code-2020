@@ -55,8 +55,12 @@ def propagate(d, k):
                     propagate(d, k2)
 
 
+def dangerous(foods):
+    return ",".join(i for a, s in sorted(match(foods).items()) for i in s)
+
+
 if __name__ == "__main__":
 
     foods = parse(fileinput.input())
 
-    print(solve(foods))
+    print(dangerous(foods))
