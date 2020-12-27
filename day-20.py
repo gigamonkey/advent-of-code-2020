@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from math import sqrt
 import fileinput
 import re
 from collections import Counter
@@ -17,7 +18,17 @@ tile_pat = re.compile("^Tile (\d+):")
 
 sides = ["top", "bottom", "left", "right"]
 
+opposite = {
+    "top":     "bottom",
+    "bottom":     "top",
+    "left": "right",
+    "right": "left",
+}
 
+
+# FIXME: generalize this to rectangles. Needs to make a rectangle with
+# flipped dimensions and second diagonal flipper needs to be passed
+# new (height - 1) and (width - 1) rather than (size - 1) the square.
 def flipper(fn):
     def flip(square):
         size = len(square)
@@ -99,27 +110,102 @@ def parse(input):
     return list(g())
 
 
-def stitch(tiles):
-    pass
+def tiles_for_edges(tiles):
+    """
+    Map all the possible edges for all the tiles (in all orientations)
+    to the base tiles that can have that edge.
+    """
+    d = defaultdict(set)
+    for tile in tiles:
+        for e in tile.all_edges():
+            d[e].add(tile)
+    return d
+
+
+def categorized_tiles(tiles):
+
+    d = tiles_for_edges(tiles)
+
+    # For each edge, if there's only one tile with that edge, it must be an outer tile.
+    outer = {tile for edge, tiles in d.items() for tile in tiles if len(tiles) == 1}
+
+    # Corner tiles have four edges (two actually, times two
+    # orientations) that aren't shared with any other tile.
+
+    def is_corner(tile):
+        return sum(len(d[e]) == 1 for e in tile.all_edges()) == 4
+
+    corners = {tile for tile in outer if is_corner(tile)}
+
+    return {
+        'corners': corners,
+        'outer': outer - corners,
+        'inner': set(tiles) - outer
+    }
+
+
+def solve(tiles):
+
+    size = round(sqrt(len(tiles)))
+
+    d = tiles_for_edges(tiles)
+
+    categorized = categorized_tiles(tiles)
+
+    corners = categorized['corners']
+
+    if reduce(mul, (tile.num for tile in corners)) == 21599955909991:
+        print("ok in solve")
+
+    image = [[None] * size for _ in range(size)]
+
+    image[0][0] = list(corners)[0]
+
+    def other(neighbor, direction):
+        edge = neighbor.edge(opposite[direction])
+        tiles = {t for t in d[edge] if t.num != neighbor.num}
+        assert len(tiles) == 1, f"neighbor: {neighbor} tiles: {tiles}"
+        for t in list(tiles)[0].all_orientations():
+            if t.edge(direction) == edge:
+                return t
+
+
+    for y in range(size):
+        for x in range(size):
+            if x == 0:
+                if y == 0:
+                    image[y][x] = list(corners)[0]
+                else:
+                    image[y][x] = other(image[y-1][x], 'top')
+            else:
+                image[y][x] = other(image[y][x-1], 'left')
+
+    return image
+
+def combine(image):
+
+    for row in image:
+        tile_height = len(row[0].rows)
+        for y in range(1, tile_height - 1):
+            print("".join(''.join(tile.rows[y][1:-1]) for tile in row))
+
 
 
 if __name__ == "__main__":
 
     tiles = parse(fileinput.input())
 
-    d = defaultdict(set)
+    image = solve(tiles)
+    for row in image:
+        print(' '.join(str(t.num) for t in row))
 
+    combine(image)
+
+
+    d = defaultdict(set)
     for tile in tiles:
         for e in tile.all_edges():
             d[e].add(tile)
-
-    c = Counter()
-    for e, tiles in d.items():
-        c[len(tiles)] += 1
-
-    for count, num_edges in c.items():
-        print(f"{num_edges} edges with {count} tiles.")
-    exit()
 
     outer = {tile for edge, tiles in d.items() for tile in tiles if len(tiles) == 1}
 
@@ -127,4 +213,5 @@ if __name__ == "__main__":
         tile for tile in outer if sum(len(d[e]) == 1 for e in tile.all_edges()) == 4
     }
 
-    print(reduce(mul, (tile.num for tile in corners)))
+    if reduce(mul, (tile.num for tile in corners)) == 21599955909991:
+        print("ok")
