@@ -94,18 +94,15 @@ class Tile:
     num: int
     bits: Tuple[Tuple[str]] = field(compare=False)
     orientation: int = 0
+
     rows: Tuple[Tuple[str]] = field(compare=False, init=False)
 
     def __post_init__(self):
-        object.__setattr__(
-            self, "rows", transform(self.bits, transforms[self.orientation])
-        )
+        oriented = transform(self.bits, transforms[self.orientation])
+        object.__setattr__(self, "rows", oriented)
 
     def orient(self, o):
-        if o == self.orientation:
-            return self
-        else:
-            return Tile(self.num, self.bits, o)
+        return self if o == self.orientation else Tile(self.num, self.bits, o)
 
     def all_orientations(self):
         return {self.orient(o) for o in range(8)}
@@ -141,7 +138,8 @@ def parse(input):
 
 
 def search(state):
-    if state is None:
+
+    if state is None or any(len(v) == 0 for v in state.values()):
         return None
 
     elif is_solved(state):
@@ -151,12 +149,13 @@ def search(state):
         p = next_position(state)
         tiles = frozenset(state[p])
         for tile in tiles:
+            print(f"Trying {tile.num} {tile.orientation} in {p}")
             if solution := search(assign(dict(state), p, tile)):
                 return solution
 
 
 def is_solved(state):
-    return all(len(p) == 1 for p in state.values())
+    return all(len(v) == 1 for v in state.values())
 
 
 def next_position(state):
@@ -164,85 +163,71 @@ def next_position(state):
 
 
 def assign(state, pos, tile):
-    if verbose:
-        print(f"Assigning {tile.num} {tile.orientation} to {pos}")
+    print(f"Assigning {tile.num} {tile.orientation} to {pos}")
     others = frozenset(t for t in state[pos] if t != tile)
     if others:
         return eliminate(state, pos, others)
     else:
-        if verbose:
-            print(f"Already assigned.")
+        # if verbose: print(f"Already assigned.")
         return state
-
 
 def eliminate(state, pos, tiles):
 
+    print("Eliminate")
+
+    # Hit a dead end
+    if not state[pos]:
+        return None
+
     # Bail quickly if this won't change anyhing.
     if not (state[pos] & tiles):
-        if verbose:
-            print(
-                f"Quick bail in eliminate. {tilenums(state[pos])} vs {tilenums(tiles)}"
-            )
+        # if verbose: print(f"Quick bail in eliminate. {tilenums(state[pos])} vs {tilenums(tiles)}")
         return state
 
-    if verbose:
-        print(f"Eliminating {len(tiles)} tiles from {pos}")
+    # print(f"Eliminating {len(state[pos] & tiles)} tiles from {pos}")
 
     # Otherise we're actually removing tiles from this position. As a
     # consequence we will need to check our neighbors after we're done.
     state[pos] = state[pos] - tiles
 
-    if not state[pos]:
-        # Hit a dead end
-        if verbose:
-            print(f"No tiles left in {pos}")
-        return None
+    unique_left = {t.num for t in state[pos]}
 
-    else:
-        unique_left = {t.num for t in state[pos]}
+    # if verbose: print(f"Only one unique tile {unique_left} left in {pos}")
 
-        if verbose:
-            print(f"Only one unique tile {unique_left} left in {pos}")
+    if len(unique_left) == 1:
 
-        if len(unique_left) == 1:
+        # if verbose: print(f"Only one unique tile {unique_left} left in {pos} ({list(state[pos])[0].num})")
 
-            if verbose:
-                print(
-                    f"Only one unique tile {unique_left} left in {pos} ({list(state[pos])[0].num})"
-                )
+        # If this position is now down to one tile (by number) we
+        # need to eliminate that tile from all other positions.
+        to_remove = list(state[pos])[0].all_orientations()
+        positions = list(state.keys())
+        print("Removing unique tile.")
+        for p in positions:
+            if p != pos:
+                #print(f"Removing {({t.num for t in to_remove})} from {p} because it's already in {pos}")
+                if (state := eliminate(state, p, to_remove)) is None:
+                    return None
 
-            # If this position is now down to one tile (by number) we
-            # need to eliminate that tile from all other positions.
-            to_remove = list(state[pos])[0].all_orientations()
-            positions = list(state.keys())
-            for p in positions:
-                if p != pos:
-                    if verbose:
-                        print(
-                            f"Removing {({t.num for t in to_remove})} from {p} because it's already in {pos}"
-                        )
-                    if (state := eliminate(state, p, to_remove)) is None:
-                        return None
+                assert not (
+                    state[p] & to_remove
+                ), f"{tilenums(state[p])}; {tilenums(to_remove)}"
+                # if verbose: print({(t.num, t.orientation) for t in state[p]})
 
-                    assert not (
-                        state[p] & to_remove
-                    ), f"{tilenums(state[p])}; {tilenums(to_remove)}"
-                    if verbose:
-                        print({(t.num, t.orientation) for t in state[p]})
+    # Now we can check our neighbors for tiles that are no longer
+    # possible given the changes to this position.
 
-        # Now we can check our neighbors for tiles that are no longer
-        # possible given the changes to this position.
-        for n, side in neighbors(state, pos):
-            edges = {t.edge(side) for t in state[pos]}
-            to_remove = {t for t in state[n] if t.edge(opposites[side]) not in edges}
-            if verbose:
-                print(
-                    f"Eliminating {len(to_remove)} tiles with no common edge from neighbor {n} of {pos}"
-                )
+
+    print("Checking neighbors.")
+    for n, side in neighbors(state, pos):
+        edges = {t.edge(side) for t in state[pos]}
+        to_remove = {t for t in state[n] if t.edge(opposites[side]) not in edges}
+        if to_remove:
+            print(f"Eliminating {len(to_remove)} tiles with no common edge from neighbor {n} of {pos}")
             if (state := eliminate(state, n, to_remove)) is None:
                 return None
 
-        return state
+    return state
 
 
 def tilenums(tiles):
