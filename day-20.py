@@ -13,6 +13,13 @@ from typing import Tuple
 
 verbose = False
 
+sea_monster = [
+    "                  #",
+    "#    ##    ##    ###",
+    " #  #  #  #  #  #",
+]
+
+
 tile_pat = re.compile("^Tile (\d+):")
 
 sides = ["top", "bottom", "left", "right"]
@@ -189,7 +196,32 @@ def combine(image):
 
 def show(bits):
     for line in bits:
-        print(" ".join(line))
+        print("".join(line))
+
+
+def on_bits(image):
+    return {
+        (x, y) for y, row in enumerate(image) for x, c in enumerate(row) if c == "#"
+    }
+
+
+def find_monster(monster, image):
+    image_bits = on_bits(image)
+    monster_bits = on_bits(monster)
+
+    all_monsters = set()
+
+    found = 0
+
+    for bx, by in product(range(len(image[0])), range(len(image))):
+        translated = {(x + bx, y + by) for (x, y) in monster_bits}
+        if (translated & image_bits) == translated:
+            all_monsters |= translated
+            found += 1
+
+    roughness = len(image_bits - all_monsters)
+
+    return (found, roughness)
 
 
 if __name__ == "__main__":
@@ -199,10 +231,10 @@ if __name__ == "__main__":
     image = combine(solve(tiles))
 
     for t in transforms:
-        show(transform(image, t))
-        print()
-
-    print(len({transform(image, t) for t in transforms}))
+        x = transform(image, t)
+        m, r = find_monster(sea_monster, x)
+        if m > 0:
+            print(f"{m} monsters; roughness = {r}")
 
     d = defaultdict(set)
     for tile in tiles:
