@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
-from math import sqrt
 import fileinput
 import re
-from collections import Counter
 from collections import defaultdict
 from dataclasses import dataclass
 from dataclasses import field
 from functools import reduce
 from itertools import product
+from math import sqrt
 from operator import mul
 from typing import Tuple
 
@@ -19,8 +18,8 @@ tile_pat = re.compile("^Tile (\d+):")
 sides = ["top", "bottom", "left", "right"]
 
 opposite = {
-    "top":     "bottom",
-    "bottom":     "top",
+    "top": "bottom",
+    "bottom": "top",
     "left": "right",
     "right": "left",
 }
@@ -30,13 +29,14 @@ opposite = {
 # flipped dimensions and second diagonal flipper needs to be passed
 # new (height - 1) and (width - 1) rather than (size - 1) the square.
 def flipper(fn):
-    def flip(square):
-        size = len(square)
-        new_square = [[None] * size for _ in range(size)]
-        for x, y in product(range(size), repeat=2):
-            new_x, new_y = fn(size - 1, x, y)
-            new_square[new_y][new_x] = square[y][x]
-        return tuple(tuple(row) for row in new_square)
+    def flip(rect):
+        height = len(rect)
+        width = len(rect[0])
+        new_rect = [[None] * width for _ in range(height)]
+        for x, y in product(range(width), range(height)):
+            new_x, new_y = fn(width - 1, height - 1, x, y)
+            new_rect[new_y][new_x] = rect[y][x]
+        return tuple(tuple(row) for row in new_rect)
 
     return flip
 
@@ -44,10 +44,14 @@ def flipper(fn):
 flips = [
     flipper(fn)
     for fn in (
-        lambda n, x, y: (x, (n - y)),
-        lambda n, x, y: ((n - x), y),
-        lambda n, x, y: (y, x),
-        lambda n, x, y: ((n - y), (n - x)),
+        # Vertical
+        lambda w, h, x, y: (x, (h - y)),
+        # Horizontal
+        lambda w, h, x, y: ((w - x), y),
+        # Diagonal 1
+        lambda w, h, x, y: (y, x),
+        # Diagonal 2
+        lambda w, h, x, y: ((h - y), (w - x)),
     )
 ]
 
@@ -137,11 +141,7 @@ def categorized_tiles(tiles):
 
     corners = {tile for tile in outer if is_corner(tile)}
 
-    return {
-        'corners': corners,
-        'outer': outer - corners,
-        'inner': set(tiles) - outer
-    }
+    return {"corners": corners, "outer": outer - corners, "inner": set(tiles) - outer}
 
 
 def solve(tiles):
@@ -152,10 +152,7 @@ def solve(tiles):
 
     categorized = categorized_tiles(tiles)
 
-    corners = categorized['corners']
-
-    if reduce(mul, (tile.num for tile in corners)) == 21599955909991:
-        print("ok in solve")
+    corners = categorized["corners"]
 
     image = [[None] * size for _ in range(size)]
 
@@ -169,37 +166,44 @@ def solve(tiles):
             if t.edge(direction) == edge:
                 return t
 
-
     for y in range(size):
         for x in range(size):
             if x == 0:
                 if y == 0:
                     image[y][x] = list(corners)[0]
                 else:
-                    image[y][x] = other(image[y-1][x], 'top')
+                    image[y][x] = other(image[y - 1][x], "top")
             else:
-                image[y][x] = other(image[y][x-1], 'left')
+                image[y][x] = other(image[y][x - 1], "left")
 
     return image
 
+
 def combine(image):
 
-    for row in image:
-        tile_height = len(row[0].rows)
-        for y in range(1, tile_height - 1):
-            print("".join(''.join(tile.rows[y][1:-1]) for tile in row))
+    def g():
+        for row in image:
+            tile_height = len(row[0].rows)
+            for y in range(1, tile_height - 1):
+                yield tuple(c for tile in row for c in tile.rows[y][1:-1])
 
+    return tuple(g())
 
+def show(bits):
+    for line in bits:
+        print("".join(line))
 
 if __name__ == "__main__":
 
     tiles = parse(fileinput.input())
 
-    image = solve(tiles)
-    for row in image:
-        print(' '.join(str(t.num) for t in row))
+    image = combine(solve(tiles))
 
-    combine(image)
+    for t in transforms:
+        show(transform(image, t))
+        print()
+
+    print(len({transform(image, t) for t in transforms}))
 
 
     d = defaultdict(set)
