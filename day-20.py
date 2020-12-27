@@ -1,22 +1,21 @@
 #!/usr/bin/env python
 
-from operator import mul
-from functools import reduce
-from collections import defaultdict
 import fileinput
 import re
+from collections import Counter
+from collections import defaultdict
 from dataclasses import dataclass
 from dataclasses import field
 from functools import reduce
 from itertools import product
-from math import sqrt
+from operator import mul
 from typing import Tuple
 
 verbose = False
 
 tile_pat = re.compile("^Tile (\d+):")
 
-sides = ['top', 'bottom', 'left', 'right']
+sides = ["top", "bottom", "left", "right"]
 
 
 def flipper(fn):
@@ -100,6 +99,10 @@ def parse(input):
     return list(g())
 
 
+def stitch(tiles):
+    pass
+
+
 if __name__ == "__main__":
 
     tiles = parse(fileinput.input())
@@ -110,8 +113,18 @@ if __name__ == "__main__":
         for e in tile.all_edges():
             d[e].add(tile)
 
+    c = Counter()
+    for e, tiles in d.items():
+        c[len(tiles)] += 1
+
+    for count, num_edges in c.items():
+        print(f"{num_edges} edges with {count} tiles.")
+    exit()
+
     outer = {tile for edge, tiles in d.items() for tile in tiles if len(tiles) == 1}
 
-    corners = {tile for tile in outer if sum(len(d[e]) == 1 for e in tile.all_edges()) == 4}
+    corners = {
+        tile for tile in outer if sum(len(d[e]) == 1 for e in tile.all_edges()) == 4
+    }
 
     print(reduce(mul, (tile.num for tile in corners)))
