@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import fileinput
 from functools import reduce
 from operator import add
 
@@ -51,14 +52,11 @@ def recursive(decks):
 
         seen = set()
 
-        if 10 < level:
-            print(f"{[level]} {len(seen)}")
+        # if 10 < level: print(f"{[level]} {len(seen)}")
 
         entry_snapshot = snapshot(decks)
         if entry_snapshot in memo:
             return memo[entry_snapshot]
-
-        # verbose_loop = True
 
         count = 0
 
@@ -89,19 +87,23 @@ def recursive(decks):
                 if verbose_loop or count > max_count:
                     print(f"[{level}]: Recursive game")
 
-                r = loop(copy(decks), level + 1)
+                # r = loop(copy(decks), level + 1)
 
                 # assert set(r[0]) | set(r[1]) == set(decks[0]) | set(decks[1])
 
                 if verbose_loop:
                     print(f"[{level}]: Back from recursive call {decks}")
 
-                if r[0] and not r[1]:
-                    winner = 0
-                elif not r[0] and r[1]:
-                    winner = 1
+                if False:
+
+                    if r[0] and not r[1]:
+                        winner = 0
+                    elif not r[0] and r[1]:
+                        winner = 1
+                    else:
+                        print(f"Huh, loop returned an incomplete game: {r}")
                 else:
-                    print(f"Huh, loop returned an incomplete game: {r}")
+                    winner = 0 if max(decks[0]) > max(decks[1]) else 1
 
                 if winner == 0:
                     decks[0].append(p1)
@@ -123,9 +125,7 @@ def recursive(decks):
         memo[entry_snapshot] = decks
         return memo[entry_snapshot]
 
-    r = loop(decks)
-    print(f"{len(memo):,d} total unique decks.")
-    return r
+    return loop(decks)
 
 
 def score(decks):
@@ -135,26 +135,7 @@ def score(decks):
 
 if __name__ == "__main__":
 
-    # decks = parse(fileinput.input())
-
-    # x = 19
-    # decks[0] = decks[0][:x]
-    # decks[1] = decks[1][:x]
-
-    # swaps = [-2]
-    # for s in swaps:
-    #    decks[0][s], decks[1][s] = decks[1][s], decks[0][s]
-
-    import sys
-
-    per = int(sys.argv[1])
-
-    deck = list(range(1, (per * 2) + 1))
-    import random
-
-    random.shuffle(deck)
-
-    decks = [deck[:per], deck[per:]]
+    decks = parse(fileinput.input())
 
     print(score(play(copy(decks))))
     print(score(recursive(copy(decks))))
