@@ -6,6 +6,7 @@ from typing import Optional
 test = "389125467"
 short_test_result = "92658374"
 test_result = "67384529"
+test_part_2_result = 149245887792
 
 puzzle = "583976241"
 part1_answer = "24987653"
@@ -74,17 +75,31 @@ def solve(start):
 #
 
 
-def solve_2(start, steps):
-    circle = make_circle(start, 9)
-    index = index_links(circle, 9)
+def solve_2(start, steps, maximum=9):
+    circle = make_circle(start, maximum)
+    index = index_links(circle, maximum)
 
     current = circle
     for i in range(steps):
+
+        if i % 10_000 == 0:
+            print(".", end="", flush=True)
+        if i % 1_000_000 == 0:
+            print("", flush=True)
+
         # print(f"-- move {i + 1} --")
         # print(f"cups: {cups(current)}")
-        current = step_2(current, index, 9)
+        current = step_2(current, index, maximum)
+    print()
+    return index[1]
 
-    return "".join(str(v) for v in index[1].next.take(8))
+
+def part_1_solution(one):
+    return "".join(str(v) for v in one.next.take(8))
+
+
+def part_2_solution(one):
+    return one.next.value * one.next.next.value
 
 
 def cups(current):
@@ -114,6 +129,12 @@ def step_2(current, index, maximum):
     d.next = pickup_head
     pickup_tail.next = insert_point
     return current.next
+
+
+def check_invariants(current):
+    in_circle = set(current.take(1_000_000))
+
+    assert in_circle == set(range(1, 1_000_001)), f"{len(in_circle)}"
 
 
 def make_circle(start, maximum):
@@ -149,11 +170,17 @@ def to_links(xs, head=None):
 
 if __name__ == "__main__":
 
-    assert solve(test) == test_result
-    assert solve(puzzle) == part1_answer
+    check = False
 
-    assert solve_2(test, 10) == short_test_result
-    assert solve_2(test, 100) == test_result
-    assert solve_2(puzzle, 100) == part1_answer
+    if check:
+        assert solve(test) == test_result
+        assert solve(puzzle) == part1_answer
+        assert part_1_solution(solve_2(test, 10)) == short_test_result
+        assert part_1_solution(solve_2(test, 100)) == test_result
+        assert part_1_solution(solve_2(puzzle, 100)) == part1_answer
+        assert (
+            part_2_solution(solve_2(test, 10_000_000, 1_000_000)) == test_part_2_result
+        )
+        print("ok")
 
-    print("ok")
+    print(part_2_solution(solve_2(puzzle, 10_000_000, 1_000_000)))
